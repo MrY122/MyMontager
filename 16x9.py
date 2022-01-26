@@ -75,13 +75,58 @@ for file in files:
 			
 			bg.save(path + "processed/" + file)
 
-#Видео
-"""
+	#Видео
 	elif file[-3:] == "mp4":
 		vid = cv2.VideoCapture(fullname)
 		height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
 		width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
 
 		if height != 1080 or width != 1920:
-			video = ffmpeg.input(fullname)
-"""
+			bg = ffmpeg.input(fullname)
+			orientation = 0
+
+			if width / height < 16 / 9: #вертикальное видео
+				margin = Margin(width, height)
+				orientation = 1
+
+			else: #широкое видео
+				margin = Margin(height, width)
+				orientation = 0
+
+			#Задний фон
+			if orientation == 1:
+				margin = Margin(width, height)
+				bg = bg.video.filter("crop", x="0", y=str(margin), w=str(width), h=str(height - (margin * 2)))
+
+			else:
+				margin = Margin(height, width)
+				bg = bg.video.filter("crop", x=str(margin), y="0", w=str(width - (margin * 2)), h=str(height))
+			bg = bg.filter("scale", 1920, 1080)
+			bg = bg.filter("boxblur", lp="1", lr="50", cr="25").filter("eq", brightness=-0.1)
+			bgo = ffmpeg.output(bg, path + "processed/bg" + file)
+			ffmpeg.run(bgo)
+
+			#Передний план
+			fg = ffmpeg.input(fullname)
+			if orientation == 1:
+				fg = fg.filter("scale", -1, 1080)
+				fg = ffmpeg.output(fg, path + "processed/fg" + file)
+				ffmpeg.run(fg)
+
+				padding = Padding(width)
+
+				final = ffmpeg.filter([ffmpeg.input(path + "processed/bg" + file), ffmpeg.input(path + "processed/fg" + file)],"overlay", x=str(padding))
+			else:
+				fg = fg.filter("scale", 1920, -1)
+				fg = ffmpeg.output(fg, path + "processed/fg" + file)
+				ffmpeg.run(fg)
+
+				padding = Padding(height)
+
+				final = ffmpeg.filter([ffmpeg.input(path + "processed/bg" + file), ffmpeg.input(path + "processed/fg" + file)],"overlay", y=str(padding))
+			final = ffmpeg.output(final, path + "processed/" + file)
+			ffmpeg.run(final)
+
+			os.remove(path + "processed/fg" + file)
+			os.remove(path + "processed/bg" + file)
+	print(file + " обработан")
