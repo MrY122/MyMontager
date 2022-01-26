@@ -4,10 +4,22 @@ import cv2
 from PIL import Image, ImageFilter, ImageEnhance
 import math
 
+
+def Margin(param1, param2):
+	return round((param2 - ((param1 * 9) / 16)) / 2)
+
+def Padding(param):
+	return round((1920 - param) / 2)
+
+
 path = input("Путь к папке") + "/"
 files = os.listdir(path)
 
-os.mkdir(path + "processed")
+try:
+	os.mkdir(path + "processed")
+except:
+	print("Папка уже существует")
+
 
 for file in files:
 
@@ -15,13 +27,6 @@ for file in files:
 	#Изображение
 	if file[-3:] == "png" or file[-3:] == "jpg" or file[-4:] == "jpeg" or file[-4:] == "webp":
 
-		if file[-4:] == "webp":
-			convert = Image.open(fullname)
-			convert.save(fullname[:-3] + "png")
-			fullname = fullname[:-3] + "png"
-			file = file[:-3] + "png"
-
-		orientation = ""
 		im = Image.open(fullname)
 		(width, height) = im.size
 		if im.size != (1920, 1080):
@@ -29,19 +34,19 @@ for file in files:
 			final = im.copy()
 
 			#Обрезка
-			vertical_margin = (height - ((width * 9) / 16)) / 2 #Даже не спрашивай, почему оно называется так, просто нужно было назвать как-то, чтобы передавался примерный смысл
-			horizontal_margin = (width - ((height * 16) / 9)) / 2
 			orientation = 0
 
 			if width / height < 16 / 9: #вертикальное изображение
+				margin = Margin(width, height)
 				orientation = 1 #вертикальное
 
-				final = final.crop((0, round(vertical_margin), width, height - round(vertical_margin)))
+				final = final.crop((0, margin, width, height - margin))
 
 			else: #широкое изображение (или im.size[0] / im.size[1] > 16 / 9)
+				margin = Margin(height, width)
 				orientation = 0
 
-				final = final.crop((round(horizontal_margin), 0, width - round(horizontal_margin), height))
+				final = final.crop((margin, 0, width - margin, height))
 
 			final = final.resize((1920, 1080))
 
@@ -56,19 +61,21 @@ for file in files:
 
 			if orientation == 1:
 				im = im.resize((round((1080 * width) / height), 1080))
-				padding = round((1920 - im.size[0]) / 2) #Даже не спрашивай, почему оно называется так, просто нужно было назвать как-то, чтобы передавался примерный смысл
+				padding = Padding(im.size[0]) #Даже не спрашивай, почему оно называется так, просто нужно было назвать как-то, чтобы передавался примерный смысл
 
 				bg = final.copy()
 				final = bg.paste(im, (padding, 0)) #Вертикальное
 
 			else:
 				im = im.resize((1920, round((1920 * height) / width)))
-				padding = round((1080 - im.size[1]) / 2)
+				padding = Padding(im.size[1])
 
 				bg = final.copy()
 				final = bg.paste(im, (0, padding)) #Горизонтальное
 			
 			bg.save(path + "processed/" + file)
+
+#Видео
 """
 	elif file[-3:] == "mp4":
 		vid = cv2.VideoCapture(fullname)
@@ -76,5 +83,5 @@ for file in files:
 		width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
 
 		if height != 1080 or width != 1920:
-			input = ffmpeg.input(fullname)
+			video = ffmpeg.input(fullname)
 """
