@@ -61,8 +61,7 @@ def To16x9(fullname, path, file):
 			final = final.resize((1920, 1080))
 
 			#Блюр
-			final = final.filter(ImageFilter.BLUR)
-			for i in range(10):
+			for i in range(15):
 				final = final.filter(ImageFilter.BLUR)
 
 			#Затемнение
@@ -123,14 +122,20 @@ def To16x9(fullname, path, file):
 				fg = ffmpeg.output(fg, path + "processed/fg" + file)
 				ffmpeg.run(fg)
 
+				vid = cv2.VideoCapture(path + "processed/fg" + file)
+				width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+
 				padding = Padding(width)
 
 				final = ffmpeg.filter([ffmpeg.input(path + "processed/bg" + file), ffmpeg.input(path + "processed/fg" + file)],"overlay", x=str(padding))
+
 			else:
 				fg = fg.filter("scale", 1920, -1)
 				fg = ffmpeg.output(fg, path + "processed/fg" + file)
 				ffmpeg.run(fg)
 
+				vid = cv2.VideoCapture(path + "processed/fg" + file)
+				height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
 				padding = Padding(height)
 
 				final = ffmpeg.filter([ffmpeg.input(path + "processed/bg" + file), ffmpeg.input(path + "processed/fg" + file)],"overlay", y=str(padding))
