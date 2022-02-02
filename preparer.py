@@ -4,18 +4,27 @@ import cv2
 from PIL import Image, ImageFilter, ImageEnhance
 import math
 import shutil
+from svglib.svglib import svg2rlg
+from reportlab.graphics import renderPM
 
-def Convert(fullname, path, file, final_format, file_type):
-	if file_type == "img":
-		if fullname[-3:] == "svg":
-			print("ewrtdfgyh")
-		else:
-			im = Image.open(fullname)
-			im.save(fullname[:-3] + final_format)
-			shutil.move(fullname, path + "old/" + file)
+def Convert(fullname, path, file, final_format):
 
-	elif file_type == "video":
-		print("ertyuiop")
+	if fullname[-3:] == "svg":
+		drawing = svg2rlg(fullname)
+		renderPM.drawToFile(drawing, fullname[:-3] + "png", fmt='PNG')
+		shutil.move(fullname, path + "old/" + file)
+
+	elif fullname[-3:] == "gif" or fullname[-3:] == "avi":
+		conv = ffmpeg.input(fullname)
+		conv = ffmpeg.output(conv, fullname[:-3] + "mp4")
+		ffmpeg.run(conv)
+		shutil.move(fullname, path + "old/" + file)
+
+	elif fullname[-3:] == "png" or fullname[-3:] == "jpg" or fullname[-4:] == "jpeg" or fullname[-4:] == "webp":
+		im = Image.open(fullname)
+		im.save(fullname[:-3] + final_format)
+		shutil.move(fullname, path + "old/" + file)
+
 
 def To16x9(fullname, path, file):
 
@@ -137,7 +146,6 @@ def To16x9(fullname, path, file):
 to16x9 = True
 convert = True
 final_format = "png"
-file_type = "img" #or "video"
 
 path = input("Путь к папке") + "/"
 
@@ -156,7 +164,7 @@ except:
 for file in files:
 	fullname = path + file
 	if convert == True:
-		Convert(fullname, path, file, final_format, file_type)
+		Convert(fullname, path, file, final_format)
 
 files = os.listdir(path)
 for file in files:
