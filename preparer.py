@@ -7,7 +7,7 @@ import shutil
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPM
 
-def Convert(fullname, path, file, final_format):
+def convert(fullname, path, file, final_format):
 
 	if fullname[-3:] == "svg":
 		drawing = svg2rlg(fullname)
@@ -20,13 +20,18 @@ def Convert(fullname, path, file, final_format):
 		ffmpeg.run(conv)
 		shutil.move(fullname, path + "old/" + file)
 
-	elif fullname[-3:] == "png" or fullname[-3:] == "jpg" or fullname[-4:] == "jpeg" or fullname[-4:] == "webp":
+	elif fullname[-3:] == "png" or fullname[-3:] == "jpg":
 		im = Image.open(fullname)
 		im.save(fullname[:-3] + final_format)
 		shutil.move(fullname, path + "old/" + file)
 
+	elif fullname[-4:] == "jpeg" or fullname[-4:] == "webp":
+		im = Image.open(fullname)
+		im.save(fullname[:-4] + final_format)
+		shutil.move(fullname, path + "old/" + file)
 
-def To16x9(fullname, path, file):
+
+def to_16x9(fullname, path, file):
 
 	def Margin(param1, param2):
 		return round((param2 - ((param1 * 9) / 16)) / 2)
@@ -149,7 +154,7 @@ def To16x9(fullname, path, file):
 
 
 to16x9 = True
-convert = True
+convert_ = True
 final_format = "png"
 
 path = input("Путь к папке") + "/"
@@ -168,11 +173,11 @@ except:
 
 for file in files:
 	fullname = path + file
-	if convert == True:
-		Convert(fullname, path, file, final_format)
+	if convert_ == True:
+		convert(fullname, path, file, final_format)
 
 files = os.listdir(path)
 for file in files:
 	fullname = path + file
 	if to16x9 == True:
-		To16x9(fullname, path, file)
+		to_16x9(fullname, path, file)
