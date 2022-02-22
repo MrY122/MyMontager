@@ -1,6 +1,7 @@
 import wave
 import json
 import ffmpeg
+from tkinter import *
 from vosk import Model, KaldiRecognizer
 
 def audio_recognition(main_file, save_text, path):
@@ -29,27 +30,42 @@ def audio_recognition(main_file, save_text, path):
 		text.write(final)
 		text.close()
 
-audio_settings = True
-save_text = True
+def main_process():
 
-video_settings = False
+	audio_settings = True
+	video_settings = False
 
-main_file = input("Адрес видео/аудио файла")
-path = ""
+	main_file = input("Адрес видео/аудио файла")
+	path = ""
 
-tmp_path = path.split("\\")
-for i in range(len(tmp_path) - 1):
-	path += tmp_path[i]
+	tmp_path = path.split("\\")
+	for i in range(len(tmp_path) - 1):
+		path += tmp_path[i]
 
-#main_file = ffmpeg.input(path)
+	#main_file = ffmpeg.input(path)
 
-if audio_settings == True:
-	text = audio_recognition(main_file, save_text, path)
-	print(audio)
+	if audio_settings == True:
+		text = audio_recognition(main_file, save_text, path)
+		print(audio)
 
-"""
-if video_settings == True:
-	video = main_file.video
+	"""
+	if video_settings == True:
+		video = main_file.video
 
-final = ffmpeg.output(audio, path[:-4] + "_processed.mp3").run()
-"""
+	final = ffmpeg.output(audio, path[:-4] + "_processed.mp3").run()
+	"""
+
+#Окно
+window = Tk()
+window.title("My Montager")
+
+save_text = BooleanVar()
+save_text.set(False)
+
+chk_audio = Checkbutton(window, text='Сохранить текст', var=save_text)  
+chk_audio.grid(column=0, row=0)
+
+main_btn = Button(window, text="Запуск", command=main_process)
+main_btn.grid(column=0, row=1)
+
+window.mainloop()
