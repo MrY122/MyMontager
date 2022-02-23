@@ -153,31 +153,30 @@ def to_16x9(fullname, path, file):
 
 
 
-to16x9 = True
-convert_ = True
-final_format = "png"
+def main(to16x9, convert_):
+	final_format = "png"
 
-path = input("Путь к папке") + "/"
+	path = input("Путь к папке") + "/"
 
-files = os.listdir(path)
-try:
-	os.mkdir(path + "processed")
-except:
-	print("Папка уже существует")
+	files = os.listdir(path)
+	try:
+		os.mkdir(path + "processed")
+	except:
+		print("Папка уже существует")
 
-try:
-	os.mkdir(path + "old")
-except:
-	print("Папка уже существует")
+	try:
+		os.mkdir(path + "old")
+	except:
+		print("Папка уже существует")
 
 
-for file in files:
-	fullname = path + file
-	if convert_ == True:
-		convert(fullname, path, file, final_format)
+	for file in files:
+		fullname = path + file
+		if convert_ == True:
+			convert(fullname, path, file, final_format)
 
-files = os.listdir(path)
-for file in files:
-	fullname = path + file
-	if to16x9 == True:
-		to_16x9(fullname, path, file)
+	files = os.listdir(path)
+	for file in files:
+		fullname = path + file
+		if to16x9 == True:
+			to_16x9(fullname, path, file)
