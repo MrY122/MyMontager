@@ -9,14 +9,15 @@ def main_process():
 
 	audio_settings = True
 
-	preparer.main(save_convert.get(), save_to16x9.get())
+	preparer.main(save_to16x9.get(), save_convert.get())
 
 	main_file = input("Адрес видео/аудио файла")
+
 	path = ""
 
-	tmp_path = path.split("\\")
+	tmp_path = main_file.split("\\")
 	for i in range(len(tmp_path) - 1):
-		path += tmp_path[i]
+		path += tmp_path[i] + "\\"
 
 	if audio_settings == True:
 		text = SpeechRecognizing.audio_recognition(main_file, save_text, path)
@@ -43,10 +44,13 @@ chk_to16x9.grid(column=0, row=1)
 chk_convert = Checkbutton(window, text="Конвертировать исходники в распространённые форматы", var=save_convert)  
 chk_convert.grid(column=1, row=1)
 
+speech_recognition_text = Label(window, text="Функции распознавания речи:")
+speech_recognition_text.grid(column=0, row=2)
+
 chk_save_text = Checkbutton(window, text="Сохранить текст", var=save_text)  
-chk_save_text.grid(column=0, row=2)
+chk_save_text.grid(column=0, row=3)
 
 main_btn = Button(window, text="Запуск", command=main_process)
-main_btn.grid(column=0, row=3)
+main_btn.grid(column=0, row=4)
 
 window.mainloop()
