@@ -33,12 +33,6 @@ def convert(fullname, path, file, final_format):
 
 def to_16x9(fullname, path, file):
 
-	def Margin(param1, param2):
-		return round((param2 - ((param1 * 9) / 16)) / 2)
-
-	def Padding(param):
-		return round((1920 - param) / 2)
-
 	#Изображение
 	if fullname[-3:] == "png" or fullname[-3:] == "jpg" or fullname[-4:] == "jpeg" or fullname[-4:] == "webp":
 
@@ -52,13 +46,13 @@ def to_16x9(fullname, path, file):
 			orientation = 0
 
 			if width / height < 16 / 9: #вертикальное изображение
-				margin = Margin(width, height)
+				margin = round((height - ((width * 9) / 16)) / 2)
 				orientation = 1 #вертикальное
 
 				final = final.crop((0, margin, width, height - margin))
 
 			else: #широкое изображение (или im.size[0] / im.size[1] > 16 / 9)
-				margin = Margin(height, width)
+				margin = round((width - ((height * 16) / 9)) / 2)
 				orientation = 0
 
 				final = final.crop((margin, 0, width - margin, height))
@@ -75,14 +69,14 @@ def to_16x9(fullname, path, file):
 
 			if orientation == 1:
 				im = im.resize((round((1080 * width) / height), 1080))
-				padding = Padding(im.size[0]) #Даже не спрашивай, почему оно называется так, просто нужно было назвать как-то, чтобы передавался примерный смысл
+				padding = round((1920 - im.size[0]) / 2) #Даже не спрашивай, почему оно называется так, просто нужно было назвать как-то, чтобы передавался примерный смысл
 
 				bg = final.copy()
 				final = bg.paste(im, (padding, 0)) #Вертикальное
 
 			else:
 				im = im.resize((1920, round((1920 * height) / width)))
-				padding = Padding(im.size[1])
+				padding = padding = round((1080 - im.size[1]) / 2)
 
 				bg = final.copy()
 				final = bg.paste(im, (0, padding)) #Горизонтальное
@@ -100,20 +94,20 @@ def to_16x9(fullname, path, file):
 			orientation = 0
 
 			if width / height < 16 / 9: #вертикальное видео
-				margin = Margin(width, height)
+				margin = round((height - ((width * 9) / 16)) / 2)
 				orientation = 1
 
 			else: #широкое видео
-				margin = Margin(height, width)
+				margin = round((width - ((height * 16) / 9)) / 2)
 				orientation = 0
 
 			#Задний фон
 			if orientation == 1:
-				margin = Margin(width, height)
+				margin = round((height - ((width * 9) / 16)) / 2)
 				bg = bg.video.filter("crop", x="0", y=str(margin), w=str(width), h=str(height - (margin * 2)))
 
 			else:
-				margin = Margin(height, width)
+				margin = round((width - ((height * 16) / 9)) / 2)
 				bg = bg.video.filter("crop", x=str(margin), y="0", w=str(width - (margin * 2)), h=str(height))
 			bg = bg.filter("scale", 1920, 1080)
 			bg = bg.filter("boxblur", lp="1", lr="50", cr="25").filter("eq", brightness=-0.1)
@@ -130,7 +124,7 @@ def to_16x9(fullname, path, file):
 				vid = cv2.VideoCapture(path + "processed/fg" + file)
 				width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
 
-				padding = Padding(width)
+				padding = round((1920 - width) / 2)
 
 				final = ffmpeg.filter([ffmpeg.input(path + "processed/bg" + file), ffmpeg.input(path + "processed/fg" + file)],"overlay", x=str(padding))
 
@@ -141,7 +135,7 @@ def to_16x9(fullname, path, file):
 
 				vid = cv2.VideoCapture(path + "processed/fg" + file)
 				height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
-				padding = Padding(height)
+				padding = round((1080 - height) / 2)
 
 				final = ffmpeg.filter([ffmpeg.input(path + "processed/bg" + file), ffmpeg.input(path + "processed/fg" + file)],"overlay", y=str(padding))
 			final = ffmpeg.output(final, path + "processed/" + file)
