@@ -147,10 +147,10 @@ def to_16x9(fullname, path, file):
 
 
 
-def main(to16x9, convert_):
+def main(to16x9, convert_, path):
 	final_format = "png"
 
-	path = input("Путь к папке") + "/"
+	path = path + "/"
 
 	files = os.listdir(path)
 	try:

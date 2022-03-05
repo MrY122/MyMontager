@@ -2,6 +2,7 @@ import preparer
 import SpeechRecognizing
 
 from tkinter import *
+from tkinter import filedialog
 
 def main_process():
 	save_convert.get()
@@ -9,9 +10,9 @@ def main_process():
 
 	audio_settings = True
 
-	preparer.main(save_to16x9.get(), save_convert.get())
+	preparer.main(save_to16x9.get(), save_convert.get(), path_dir)
 
-	main_file = input("Адрес видео/аудио файла")
+	main_file = path_file
 
 	path = ""
 
@@ -23,10 +24,12 @@ def main_process():
 		text = SpeechRecognizing.audio_recognition(main_file, save_text, path)
 
 def select_dir():
-	path_dir = filedialog.askopenfilename(title="выберите папку")
+	global path_dir
+	path_dir = filedialog.askdirectory(title="выберите папку")
 
 def select_file():
-	pass
+	global path_file
+	path_file = filedialog.askopenfilename(title="выберите файл")
 
 #Окно
 window = Tk()
