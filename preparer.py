@@ -1,6 +1,6 @@
 import ffmpeg
 import os
-import cv2
+from moviepy.editor import *
 from PIL import Image, ImageFilter, ImageEnhance
 import math
 import shutil
@@ -85,9 +85,9 @@ def to_16x9(fullname, path, file):
 
 	#Видео
 	elif fullname[-3:] == "mp4":
-		vid = cv2.VideoCapture(fullname)
-		height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
-		width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+		clip = VideoFileClip(fullname)
+		clip = clip.subclip(0, 5)
+		(width, height) = clip.size() 
 
 		if height != 1080 or width != 1920:
 			bg = ffmpeg.input(fullname)

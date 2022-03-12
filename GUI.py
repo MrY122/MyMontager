@@ -11,8 +11,10 @@ def main_process():
 	audio_settings = True
 
 	preparer.main(save_to16x9.get(), save_convert.get(), path_dir)
-
-	main_file = path_file
+	try:
+		main_file = path_file
+	except:
+		pass
 
 	path = ""
 

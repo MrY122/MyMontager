@@ -26,7 +26,6 @@ def audio_recognition(main_file, save_text, path):
 
 	if save_text.get() == True:
 		fullname = path + "text.txt"
-		print(fullname)
 		text = open(fullname, "w", encoding="utf-8")
 		text.write(final)
 		text.close()
