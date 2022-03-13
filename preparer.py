@@ -87,10 +87,11 @@ def to_16x9(fullname, path, file):
 	elif fullname[-3:] == "mp4":
 		clip = VideoFileClip(fullname)
 		clip = clip.subclip(0, 5)
-		(width, height) = clip.size() 
+		(width, height) = clip.size
 
 		if height != 1080 or width != 1920:
 			bg = ffmpeg.input(fullname)
+			audio = bg.audio
 			orientation = 0
 
 			if width / height < 16 / 9: #вертикальное видео
@@ -121,8 +122,9 @@ def to_16x9(fullname, path, file):
 				fg = ffmpeg.output(fg, path + "processed/fg" + file)
 				ffmpeg.run(fg)
 
-				vid = cv2.VideoCapture(path + "processed/fg" + file)
-				width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+				clip = VideoFileClip(path + "processed/fg" + file)
+				clip = clip.subclip(0, 5)
+				width = clip.size[0]
 
 				padding = round((1920 - width) / 2)
 
@@ -133,16 +135,22 @@ def to_16x9(fullname, path, file):
 				fg = ffmpeg.output(fg, path + "processed/fg" + file)
 				ffmpeg.run(fg)
 
-				vid = cv2.VideoCapture(path + "processed/fg" + file)
-				height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+				clip = VideoFileClip(path + "processed/fg" + file)
+				clip = clip.subclip(0, 5)
+				height = clip.size[1]
+
 				padding = round((1080 - height) / 2)
 
 				final = ffmpeg.filter([ffmpeg.input(path + "processed/bg" + file), ffmpeg.input(path + "processed/fg" + file)],"overlay", y=str(padding))
-			final = ffmpeg.output(final, path + "processed/" + file)
+			
+			shutil.move(fullname, path + "old/" + file)
+			final = ffmpeg.output(audio, final, path + "processed/" + file)
 			ffmpeg.run(final)
-
+			
 			os.remove(path + "processed/fg" + file)
 			os.remove(path + "processed/bg" + file)
+			shutil.move(fullname, path + "old/" + file)
+			shutil.move(path + "processed/" + file, fullname)
 	print(file + " обработан")
 
 
@@ -153,16 +161,11 @@ def main(to16x9, convert_, path):
 	path = path + "/"
 
 	files = os.listdir(path)
-	try:
+	if files.find(path + "processed") == 0:
 		os.mkdir(path + "processed")
-	except:
-		print("Папка уже существует")
 
-	try:
+	if files.find(path + "old") == 0:
 		os.mkdir(path + "old")
-	except:
-		print("Папка уже существует")
-
 
 	for file in files:
 		fullname = path + file
@@ -174,3 +177,4 @@ def main(to16x9, convert_, path):
 		fullname = path + file
 		if to16x9 == True:
 			to_16x9(fullname, path, file)
+			os.rmdir(path + "processed")
