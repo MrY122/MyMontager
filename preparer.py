@@ -1,6 +1,6 @@
 import ffmpeg
 import os
-from moviepy.editor import *
+from videoprops import get_video_properties
 from PIL import Image, ImageFilter, ImageEnhance
 import math
 import shutil
@@ -14,7 +14,7 @@ def convert(fullname, path, file, final_format):
 		renderPM.drawToFile(drawing, fullname[:-3] + "png", fmt='PNG')
 		shutil.move(fullname, path + "old/" + file)
 
-	elif fullname[-3:] == "gif" or fullname[-3:] == "avi":
+	elif fullname[-3:] == "gif" or fullname[-3:] == "avi" or fullname[-3:] == "mov":
 		conv = ffmpeg.input(fullname)
 		conv = ffmpeg.output(conv, fullname[:-3] + "mp4")
 		ffmpeg.run(conv)
@@ -82,16 +82,17 @@ def to_16x9(fullname, path, file):
 				final = bg.paste(im, (0, padding)) #Горизонтальное
 			
 			bg.save(path + "processed/" + file)
+		else:
+			shutil.move(fullname, path + "processed/" + file)
 
 	#Видео
 	elif fullname[-3:] == "mp4":
-		clip = VideoFileClip(fullname)
-		clip = clip.subclip(0, 5)
-		(width, height) = clip.size
+		props = get_video_properties(fullname)
+		width = props['width']
+		height = props['height']
 
 		if height != 1080 or width != 1920:
 			bg = ffmpeg.input(fullname)
-			audio = bg.audio
 			orientation = 0
 
 			if width / height < 16 / 9: #вертикальное видео
@@ -109,7 +110,7 @@ def to_16x9(fullname, path, file):
 
 			else:
 				margin = round((width - ((height * 16) / 9)) / 2)
-				bg = bg.video.filter("crop", x=str(margin), y="0", w=str(width - (margin * 2)), h=str(height))
+				bg = bg.filter("crop", x=str(margin), y="0", w=str(width - (margin * 2)), h=str(height))
 			bg = bg.filter("scale", 1920, 1080)
 			bg = bg.filter("boxblur", lp="1", lr="50", cr="25").filter("eq", brightness=-0.1)
 			bgo = ffmpeg.output(bg, path + "processed/bg" + file)
@@ -122,9 +123,8 @@ def to_16x9(fullname, path, file):
 				fg = ffmpeg.output(fg, path + "processed/fg" + file)
 				ffmpeg.run(fg)
 
-				clip = VideoFileClip(path + "processed/fg" + file)
-				clip = clip.subclip(0, 5)
-				width = clip.size[0]
+				props = get_video_properties(path + "processed/fg" + file)
+				width = props['width']
 
 				padding = round((1920 - width) / 2)
 
@@ -135,37 +135,39 @@ def to_16x9(fullname, path, file):
 				fg = ffmpeg.output(fg, path + "processed/fg" + file)
 				ffmpeg.run(fg)
 
-				clip = VideoFileClip(path + "processed/fg" + file)
-				clip = clip.subclip(0, 5)
-				height = clip.size[1]
+				props = get_video_properties(path + "processed/fg" + file)
+				height = props['height']
 
 				padding = round((1080 - height) / 2)
 
 				final = ffmpeg.filter([ffmpeg.input(path + "processed/bg" + file), ffmpeg.input(path + "processed/fg" + file)],"overlay", y=str(padding))
 			
-			shutil.move(fullname, path + "old/" + file)
-			final = ffmpeg.output(audio, final, path + "processed/" + file)
+			final = ffmpeg.output(final, path + "processed/" + file)
 			ffmpeg.run(final)
-			
+
 			os.remove(path + "processed/fg" + file)
 			os.remove(path + "processed/bg" + file)
-			shutil.move(fullname, path + "old/" + file)
-			shutil.move(path + "processed/" + file, fullname)
+		else:
+			shutil.move(fullname, path + "processed/" + file)
 	print(file + " обработан")
 
 
 
-def main(to16x9, convert_, path):
-	final_format = "png"
+def main(to16x9, convert_, path, convert_format):
+	final_format = convert_format
 
 	path = path + "/"
 
 	files = os.listdir(path)
-	if files.find(path + "processed") == 0:
+	try:
 		os.mkdir(path + "processed")
+	except:
+		pass
 
-	if files.find(path + "old") == 0:
+	try:
 		os.mkdir(path + "old")
+	except:
+		pass
 
 	for file in files:
 		fullname = path + file
@@ -176,5 +178,12 @@ def main(to16x9, convert_, path):
 	for file in files:
 		fullname = path + file
 		if to16x9 == True:
-			to_16x9(fullname, path, file)
-			os.rmdir(path + "processed")
+			try:
+				to_16x9(fullname, path, file)
+			except:
+				pass
+
+	files = os.listdir(path + "processed")
+	for file in files:
+		shutil.move(path + "processed/" + file, path + file)
+	os.rmdir(path + "processed")
