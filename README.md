@@ -23,4 +23,5 @@ avi -> mp4
 
 ## speech_recognizing.py
 
-Отвечает за распознавание и реагирование на сказанный в аудио слова
+Значительная часть кода взята отсюда
+https://gitlab.com/Winston-90/automatic_video_editing
